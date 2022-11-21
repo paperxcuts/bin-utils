@@ -30,12 +30,8 @@ uint8_t hex2digit(char chr) {
     return chr;
 }
 
-void swap_endian(void* data, int size)
-{
-    uint8_t* bytes = (uint8_t*)data;
-    for (int i = 0; i < (size / 2); i++)
-        byte_swap(bytes + i, (bytes + size - 1) - i);
-}
+
+
 
 std::vector<uint8_t> from_hex_string(std::string_view str)
 {
@@ -53,85 +49,101 @@ std::vector<uint8_t> from_hex_string(std::string_view str)
     return bytes;
 }
 
-std::vector<uint8_t> from_bit_string(std::string_view str)
+
+std::vector<uint8_t> from_bit_string(std::string_view str, bool little_endian = true)
 {
+    // TODO: check for both 1 AND 0. otherwise every character except 1 will count as 0
     assert(str.length() % 8 == 0);
     std::vector<uint8_t> bytes;
+    bytes.resize(str.length() / 8);
 
-    for(int i = 0; i < str.length(); i += 8)
-    {
-        uint8_t byte;
-        for(int j = 0; j < 8; j++)
-            // TODO: check if 0 AND 1, and throw error if its not. otherwise anything other than 0 will count as 1
-            byte |= (j << str[j+i] == '0' ? 0 : 1);
-        bytes.push_back(byte);
+    // TODO: reduce code duplication (little endian and big endian do the same thing but with different loop expressions) (make function?)
+    if(little_endian){
+        for(int i = str.length() - 8, k = 0; i >= 0; i -= 8, k++)
+        {
+            uint8_t byte = 0;
+            for(int j = 0; j < 8; j++) {
+                byte |= ((str[j+i] == '1' ? 1 : 0) << (7-j));
+            }
+            bytes[k] = byte;
+        }
+    } else {
+        for(int i = 0, k = 0; i < str.length(); i += 8, k++)
+        {
+            uint8_t byte = 0;
+            for(int j = 0; j < 8; j++) {
+                byte |= ((str[j+i] == '1' ? 1 : 0) << (7-j));
+            }
+            bytes[k] = byte;
+        }
     }
     return bytes;
 }
 
-std::string bit_string(void* data, size_t size)
+template<typename T>
+T from_bit_string(std::string_view str, bool little_endian = true)
 {
+    assert(str.length() == sizeof(T) * 8);
+    T result;
+    auto bytes = from_bit_string_2(str, little_endian);
+    memcpy(&result, bytes.data(), bytes.size());
+    return res;
+}
+
+// READY TO TEST
+template<typename T>
+void swap_endian(T& data)
+{
+    size_t size = sizeof(T);
+    uint8_t* bytes = (uint8_t*)&data;
+    for (int i = 0; i < (size / 2); i++)
+        byte_swap(bytes + i, (bytes + size - 1) - i);
+}
+
+// READY TO TEST
+template<typename T>
+std::string bit_string(const T& data,  bool little_endian = true)
+{
+    constexpr int size = sizeof(T);
+
     std::string res;
     res.resize(size * 8);
-    uint8_t* bytes = (uint8_t*)data;
-    for(int i = 0; i < size; i++)
-    {
-        for(int j = 0; j < 8; j++)
-        {
-            // res[(i*8)+j] = (bytes[i] >> (7-j)) & 1 ? '1' : '0';
-            // res += (bytes[i] >> (7-j)) & 1 ? '1' : '0';
-            // res += (bytes[i] << j) & 1 ? '1' : '0';
-            res += ((bytes[i] >> (7-j)) & 1) ? '1' : '0';
+    uint8_t* bytes = (uint8_t*)&data;
+    
+    if(little_endian){
+        // little endian
+        for(int i = size-1; i >= 0; i--) {
+            for(int j = 0; j < 8; j++) {
+                res += ((bytes[i] >> (7-j)) & 1) ? '1' : '0';
+            }
+        }
+    } else {
+        // big endian
+        for(int i = 0; i < size; i++) {
+            for(int j = 0; j < 8; j++) {
+                res += ((bytes[i] >> (7-j)) & 1) ? '1' : '0';
+            }
         }
     }
+
     return res;
 }
 
-std::string bit_string(const void* data, size_t size, bool swapendian)
+// READY TO TEST
+template<typename T>
+std::string hex_string(const T& data, bool upcase = true)
 {
-	std::string res;
-	res.resize(size * 8);
-	uint8_t* bytes = (uint8_t*)data;
-	if (swapendian) {
-		for (int i = size - 1; i >= 0; i--) {
-			for (int j = 8; j > 0; j--)
-				res[size*8-(i*8+j-1)-1]=((bytes[i] >> j-1)&1) ? '1' : '0';
-		}
-	}
-	else {
-		for (int i = 0; i < size; i++) {
-			for (int j = 8; j > 0; j--)
-				res[8*i+8-j]=((bytes[i] >> j-1)&1) ? '1' : '0';
-		}
-	}
-	return res;
-}
+     size_t size = sizeof(T);
+     size_t hl = size * 2;
 
-std::string hex_string(const void* data, size_t size, bool upcase = true)
-{
-    uint8_t* bytes = (uint8_t*)data;
+    uint8_t* bytes = (uint8_t*)&data;
     std::string res;
-    int l = size * 2;
-    res.resize(l);
+    res.resize(hl);
+    
     for (int i = 0, j = 0; j < size; i += 2, j++)
     {
-        res[l-i-2] = digit2hex(bytes[j] >> 4, upcase);
-        res[l-i-1] = digit2hex(bytes[j] & 0xF, upcase);
+        res[hl-i-2] = digit2hex(bytes[j] >> 4, upcase);
+        res[hl-i-1] = digit2hex(bytes[j] & 0xF, upcase);
     }
     return res;
-}
-
-template<typename T>
-void swap_endian(T& data) {
-    swap_endian(&data, sizeof(T));
-}
-
-template<typename T>
-std::string bit_string(const T& data) {
-    return bit_string((void*)&data, sizeof(T));
-}
-
-template<typename T>
-std::string hex_string(const T&data) {
-    return hex_string(&data, sizeof(T));
 }
