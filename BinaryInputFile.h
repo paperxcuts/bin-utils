@@ -19,49 +19,49 @@ public:
     BinaryInputFile() : m_file{}, m_path{}, m_size{0} {}
 
 public:
-    // skip 'sizeof(T)' bytes from current file offset
+    // skip 'sizeof(T)' bytes from current file position
     template<typename T>
     void dummy() {
         seek(sizeof(T), std::ios::cur);
     }
 
-    // skip 'sizeof(T)' bytes, 'count' number of times from current file offset
+    // skip 'sizeof(T)' bytes, 'count' number of times from current file position
     template<typename T>
     void dummy(size_t count) {
         seek(sizeof(T) * count, std::ios::cur);
     }
 
-    // skip 'count' bytes from current file offset
-    void dummy(std::streamoff count) {
+    // skip 'count' bytes from current file position
+    void dummy(size_t count) {
         seek(count, std::ios::cur);    
     }
 
-    // read type 'T' from file, swapping the byte order if neccessary
+
+    // read type 'T' from file
     template<typename T>
     [[nodiscard]] T read() {
         T res;
-        // TODO: c++ cast?
+        // TODO: c++ style cast
         m_file.read((char*)&res, sizeof(T));
         if constexpr(byteorder != std::endian::native)
             swap_endian(res);
         return res;
     }
 
-    // read overload for seeking to streampos before reading
     template<typename T>
     [[nodiscard]] T read(std::streampos fpos) {
         seek(fpos);
         return read<T>();
     }
 
-    // read overload for seeking with stream offset and seek direction
     template<typename T>
     [[nodiscard]] T read(std::streamoff foff, std::ios::seekdir fdir) {
         seek(foff, fdir);
         return read<T>();
     }
 
-    // 
+    
+    // reads array of 'T', with size 'count', from the file before returning it in a unique_ptr (heap allocated)
     template<typename T>
     [[nodiscard]] std::unique_ptr<T[]> read_dynamic(size_t count) {
         auto data = std::make_unique<T[]>(count);
@@ -83,6 +83,7 @@ public:
     }
 
 
+    // reads array of 'T', with size 'N', and puts it in an std::array (stack allocated)
     template<typename T, int N>
     [[nodiscard]] std::array<T, N> read_static() {
         std::array<T, N> data;
@@ -104,9 +105,11 @@ public:
     }
 
 
+    // dynamically read 'count' number of bytes from the file
     [[nodiscard]] std::unique_ptr<uint8_t[]> read_bytes(size_t count) {
         auto bytes = std::make_unique<uint8_t[]>(count);
         for(int i = 0; i < count; i++)
+            // TODO: c++ style cast
             m_file.read((char*)bytes[i], sizeof(uint8_t));
         return bytes;
     }
@@ -119,7 +122,9 @@ public:
         return read_bytes(count);
     }
 
-
+    // reads null terminated string from the file
+    // where limit distance is the number of characters to stop at after not finding a null terminator or reaching the end of the file
+    // set limit_distance to -1 for no limit (INT_MAX)
     [[nodiscard]] std::string read_string(int limit_distance = -1)
     {
         if(limit_distance < 0)
@@ -135,7 +140,6 @@ public:
         }
         return res;
     }
-
 public:
     std::filesystem::path path() const {
         return m_path;
