@@ -36,7 +36,7 @@ std::pair<uint8_t, uint8_t>split_byte(uint8_t byte) {
 }
 
 
-std::vector<uint8_t> from_hex_string(std::string_view str, bool little_endian = true)
+std::vector<uint8_t> from_hex_string(std::string_view str, bool little_endian = false)
 {
     assert(str.length() % 2 == 0);
     std::vector<uint8_t> bytes;
@@ -64,7 +64,7 @@ std::vector<uint8_t> from_hex_string(std::string_view str, bool little_endian = 
 }
 
 template<typename T>
-T from_hex_string(std::string_view str, bool little_endian = true)
+T from_hex_string(std::string_view str, bool little_endian = false)
 {
     static_assert(str.length() == sizeof(T) * 2);
     T result;
@@ -76,7 +76,7 @@ T from_hex_string(std::string_view str, bool little_endian = true)
 // takes binary string (no leading 0s, no spaces seperating bytes 
 // and must be divisable by 8. simply a contigious array of 0s and 1s)
 // , interprets the bits in the string and returns them in a vector of bytes
-std::vector<uint8_t> from_bit_string(std::string_view str, bool little_endian = true)
+std::vector<uint8_t> from_bit_string(std::string_view str, bool little_endian = false)
 {
     assert(str.length() % 8 == 0);
 
@@ -109,7 +109,7 @@ std::vector<uint8_t> from_bit_string(std::string_view str, bool little_endian = 
 
 // template overload so bits in bitstring will be interpreted as the type 'T'
 template<typename T>
-T from_bit_string(std::string_view str, bool little_endian = true)
+T from_bit_string(std::string_view str, bool little_endian = false)
 {
     static_assert(str.length() == sizeof(T) * 8);
     T result;
@@ -131,7 +131,7 @@ void swap_endian(T& data)
 
 
 // turns any data into a string of bits
-std::string bit_string(const void*data, size_t size, bool little_endian = true)
+std::string bit_string(const void*data, size_t size, bool little_endian = false)
 {
     std::string res;
     res.resize(size * 8);
