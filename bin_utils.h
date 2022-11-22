@@ -19,7 +19,7 @@ char digit2hex(char chr, bool upcase = true) {
     return chr;
 }
 
-// single hexadecimal character ('0'-'9' 'a'-'f' 'A'-'F') to numerical equivalent
+// single hexadecimal character ('0'-'9' 'a'-'f' 'A'-'F') to numerical equivalent (0 - 15)
 uint8_t hex2digit(char chr) {
     if(chr >= '0' && chr <= '9')
         return chr - '0';
@@ -30,9 +30,9 @@ uint8_t hex2digit(char chr) {
     return chr;
 }
 
-// get 4 bits on right and 4 bits on left
+// 4 bits on right and 4 bits on left
 std::pair<uint8_t, uint8_t>split_byte(uint8_t byte) {
-	return { byte >> 4, byte & 0x0F };
+	return { byte >> 4, byte & 0xF };
 }
 
 
@@ -119,19 +119,21 @@ T from_bit_string(std::string_view str, bool little_endian = false)
 }
 
 // swaps the byte order of any data
-template<typename T>
-void swap_endian(T& data)
-{
-    size_t size = sizeof(T);
-    uint8_t* bytes = reinterpret_cast<uint8_t*>(&data);
+void swap_endian(void* data, size_t size) {
+    uint8_t* bytes = reinterpret_cast<uint8_t*>(data);
     for (int i = 0; i < (size / 2); i++)
         byte_swap(bytes + i, (bytes + size - 1) - i);
+}
+
+template<typename T>
+void swap_endian(T& data) {
+    swap_endian(&data, sizeof(T));
 }
 
 
 
 // turns any data into a string of bits
-std::string bit_string(const void*data, size_t size, bool little_endian = false)
+std::string bit_string(const void* data, size_t size, bool little_endian = false)
 {
     std::string res;
     res.resize(size * 8);
@@ -161,10 +163,10 @@ std::string bit_string(const void*data, size_t size, bool little_endian = false)
 // }
 
 
-std::string hex_string(const void*data, size_t size, bool upcase = true)
+// turns any data into a string of hexadecimal characters
+std::string hex_string(const void* data, size_t size, bool upcase = true)
 {
     size_t hl = size * 2;
-
     const uint8_t* bytes = reinterpret_cast<const uint8_t*>(data);
 
     std::string res;
@@ -178,7 +180,6 @@ std::string hex_string(const void*data, size_t size, bool upcase = true)
     return res;
 }
 
-// // turns any data into a string of hexadecimal characters
 // template<typename T>
 // std::string hex_string(const T& data, bool upcase = true) {
 //     return hex_string(&data, sizeof(T), upcase);
