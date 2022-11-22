@@ -131,7 +131,6 @@ void swap_endian(void* data, size_t size) {
         byte_swap(bytes + i, (bytes + size - 1) - i);
 }
 
-// template overload
 template<typename T>
 void swap_endian(T& data) {
     swap_endian(&data, sizeof(T));
