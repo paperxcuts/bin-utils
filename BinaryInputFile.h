@@ -39,8 +39,7 @@ public:
     template<typename T>
     [[nodiscard]] T read() {
         T res;
-        // TODO: c++ style cast
-        m_file.read((char*)&res, sizeof(T));
+        m_file.read(reinterpret_cast<char*>(&res), sizeof(T));
         if constexpr(byteorder != std::endian::native)
             swap_endian(res);
         return res;
@@ -107,8 +106,7 @@ public:
     [[nodiscard]] std::unique_ptr<uint8_t[]> read_bytes(size_t count) {
         auto bytes = std::make_unique<uint8_t[]>(count);
         for(int i = 0; i < count; i++)
-            // TODO: c++ style cast
-            m_file.read((char*)bytes[i], sizeof(uint8_t));
+            m_file.read(reinterpret_cast<char*>(bytes[i]), sizeof(uint8_t));
         return bytes;
     }
     [[nodiscard]] std::unique_ptr<uint8_t[]> read_bytes(size_t count, std::streampos fpos) {
