@@ -1,42 +1,39 @@
 #pragma once
-#include <array>
 #include <iostream>
 #include <optional>
+#include <cstdint>
 #include <cassert>
+#include <cmath>
+#include <array>
+
+#include "../Binary_Functions/bin_utils.h"
 
 using rgb_array_t = std::array<uint8_t, 3>;
 using hsl_array_t = std::array<float, 3>;
 
-
-
-// takes a single hexadecimal character and returns its numerical equivalent
-// - returns -1 if input is invalid
-char hex_chr2dec(char hex)
+hsl_array_t rgb_to_hsl(float r, float g, float b)
 {
-	if (hex >= '0' && hex <= '9')
-		return hex - '0';
-	if (hex >= 'a' && hex <= 'f')
-		return (hex - 'a') + 10;
-	if (hex >= 'A' && hex <= 'F')
-		return (hex - 'A') + 10;
-	return -1;
-}
+	r /= 255.0f;
+	g /= 255.0f;
+	b /= 255.0f;
 
-// takes a single value from 0 to 15 and returns its hexadecimal character equivalent 
-// - returns -1 if input is invalid
-char hex_dec2chr(char digit, bool upcase = true)
-{
-	assert(digit <= 15);
-	if (digit >= 0 && digit <= 9)
-		return '0' + digit;
-	if (digit >= 10 && digit <= 15)
-		return upcase ? (digit - 10) + 'A' : (digit - 10) + 'a';
-	return -1;
-}
+	float cmax = std::max({ r, g, b });
+	float cmin = std::min({ r, g, b });
 
-// gets value from the 4 bits on the left and the 4 bits on the right of a byte
-std::pair<uint8_t, uint8_t>split_byte(uint8_t byte) {
-	return { byte >> 4, byte & 0x0F };
+	float L = (cmax + cmin) / 2.0f;
+	float S = cmin == cmax ? 0 : L <= 0.5f ? (cmax - cmin) / (cmax + cmin) : (cmax - cmin) / (2.0f - cmax - cmin);
+	float H = S == 0 ? 0 :
+		r == cmax ? 0.0f + (g - b) / (cmax - cmin) : 
+		g == cmax ? 2.0f + (b - r) / (cmax - cmin) :
+		b == cmax ? 4.0f + (r - g) / (cmax - cmin) : 0;
+
+	H = std::round(H * 60.0f);
+	S = std::round(S * 100.0f);
+	L = std::round(L * 100.0f);
+
+	H += H < 0 ? 360.0f : 0;
+
+	return { H, S, L };
 }
 
 namespace rgb {
@@ -50,7 +47,7 @@ namespace rgb {
 		return rgb::pack(rgb[0], rgb[1], rgb[2]);
 	}
 	
-	// gets rgb values stored in a uint32_t and returns in a color_array_t
+	// gets rgb values stored in a uint32_t and returns in a rgb_array_t
 	rgb_array_t unpack(uint32_t rgb_pack) {
 		return {
 			static_cast<uint8_t>(rgb_pack >> 16),
@@ -58,6 +55,7 @@ namespace rgb {
 			static_cast<uint8_t>(rgb_pack & 0xFFFF00)
 		};
 	}
+
 
 	// n rounded to the nearest number divisable by 17 (255 / 15)
 	uint8_t round_digit_17(int n)
@@ -69,40 +67,40 @@ namespace rgb {
 		return static_cast<uint8_t>(abs(n - p1) > (n - p2) ? p2 : p1);
 	}
 
+
 	// turns rgb values to an rgb hexadecimal color code
-	// - option to round the values to fit/round and return a 3 digit hex code instead of 6
-	// - option of the hexadecimal letters being uppercase or lowercase 
+	// - three_digit: should we round the values to fit/round and return a 3 digit hex code instead of 6
+	// - uppercase: should the hexadecimal letters being uppercase or lowercase 
 	std::string rgb_to_hex(uint8_t r, uint8_t g, uint8_t b, bool three_digit = false, bool uppercase = true) {
 		std::string ret;
 
 		if (three_digit)
 		{
-			ret.push_back(hex_dec2chr(round_digit_17(r) / 17, uppercase));
-			ret.push_back(hex_dec2chr(round_digit_17(g) / 17, uppercase));
-			ret.push_back(hex_dec2chr(round_digit_17(b) / 17, uppercase));
+			ret.push_back(digit2hex(round_digit_17(r) / 17, uppercase));
+			ret.push_back(digit2hex(round_digit_17(g) / 17, uppercase));
+			ret.push_back(digit2hex(round_digit_17(b) / 17, uppercase));
 		}
 		else {
 			auto [r1, r2] = split_byte(r);
-			ret.push_back(hex_dec2chr(r1, uppercase));
-			ret.push_back(hex_dec2chr(r2, uppercase));
+			ret.push_back(digit2hex(r1, uppercase));
+			ret.push_back(digit2hex(r2, uppercase));
 
 			auto [g1, g2] = split_byte(g);
-			ret.push_back(hex_dec2chr(g1, uppercase));
-			ret.push_back(hex_dec2chr(g2, uppercase));
+			ret.push_back(digit2hex(g1, uppercase));
+			ret.push_back(digit2hex(g2, uppercase));
 
 			auto [b1, b2] = split_byte(b);
-			ret.push_back(hex_dec2chr(b1, uppercase));
-			ret.push_back(hex_dec2chr(b2, uppercase));
+			ret.push_back(digit2hex(b1, uppercase));
+			ret.push_back(digit2hex(b2, uppercase));
 		}
 
 		return ret;
 	}
 
-
-	// turns a rgb hexadecimal color code string to numerical form in a 3 component array
-	// - returns an std::optional that will contain a value only if the input string is valid
-	// - '#' hash is optional
+	// turns a rgb hexadecimal color code string to numerical form in a 3 component array.
+	// functions returns an std::optional that will contain a value only if the input string is valid.
 	// - supports 3 or 6 hex values (RGB | RRGGBB)
+	// - '#' hash is optional
 	std::optional<rgb_array_t> hex_to_rgb(std::string_view hexcode)
 	{
 		if (hexcode.empty()) return std::nullopt;
@@ -115,15 +113,14 @@ namespace rgb {
 		char* str = const_cast<char*>(hexcode.data());
 
 		if (hexcode[0] == '#') str++, len3++, len6++;
-
 		if (len == len3)
 		{
 			for (int i = 0; i < 3; i++)
 			{
-				char digit = hex_chr2dec(str[i]);
-				if (digit < 0)
+				uint8_t digit = hex2digit(str[i]);
+				if (digit == str[i])
 					return std::nullopt;
-				color[i] = static_cast<uint8_t>(digit * 17);
+				color[i] = digit * 17;
 			}
 			return color;
 		}
@@ -131,11 +128,11 @@ namespace rgb {
 		{
 			for (int i = 0, j = 0; i < 6; i += 2, j++)
 			{
-				char left = hex_chr2dec(str[i]);
-				char right = hex_chr2dec(str[i + 1]);
-				if (left < 0 || right < 0)
+				uint8_t left = hex2digit(str[i]);
+				uint8_t right = hex2digit(str[i+1]);
+				if (left == str[i] || right == str[i+1])
 					return std::nullopt;
-				color[j] = (static_cast<uint8_t>(left) << 4 | static_cast<uint8_t>(right));
+				color[j] = (left << 4 | right);
 			}
 			return color;
 		}
@@ -143,11 +140,13 @@ namespace rgb {
 		return std::nullopt;
 	}
 }
+
 class color_rgb {
+public:
 	uint8_t r;
 	uint8_t g;
 	uint8_t b;
-public:
+	
 	color_rgb() : r(0), g(0), b(0) {}
 	color_rgb(uint8_t r, uint8_t g, uint8_t b) : r(r), g(g), b(b) {}
 	color_rgb(rgb_array_t cols) : r(cols[0]), g(cols[1]), b(cols[2]) {}
@@ -157,15 +156,15 @@ public:
 		*this = colors;
 	}
 
-	color_rgb& operator=(rgb_array_t cols) {
-		*this = color_rgb(cols);
-		return *this;
-	}
-	color_rgb& operator=(std::string_view hexcode) {
-		*this = color_rgb(hexcode);
-		return *this;
-	}
-
+	// color_rgb& operator=(rgb_array_t cols) {
+	// 	*this = color_rgb(cols);
+	// 	return *this;
+	// }
+	// color_rgb& operator=(std::string_view hexcode) {
+	// 	*this = color_rgb(hexcode);
+	// 	return *this;
+	// }
+ 
 public:
 	rgb_array_t array() {
 		return {r, g, b};
