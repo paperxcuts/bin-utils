@@ -144,6 +144,7 @@ std::string bit_string(const void* data, size_t size, bool little_endian = false
 
     const uint8_t *bytes = reinterpret_cast<const uint8_t*>(data);
     
+    // TODO: reduce code duplication
     if(little_endian){
         for(int i = size-1; i >= 0; i--) {
             for(int j = 0; j < 8; j++) {
