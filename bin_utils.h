@@ -11,7 +11,7 @@ void byte_swap(uint8_t*b1, uint8_t*b2)
 }
 
 // single numiercal digit 0 to 15 to hexadecimal equivalent (0-9 A-F)
-char digit2hex(char chr, bool upcase) {
+char digit2hex(char chr, bool upcase = true) {
     if(chr >= 0 && chr <= 9)
         return chr + '0';
     if(chr >= 10 && chr <= 15)
@@ -73,7 +73,9 @@ T from_hex_string(std::string_view str, bool little_endian = true)
     return result;
 }
 
-
+// takes binary string (no leading 0s, no spaces seperating bytes 
+// and must be divisable by 8. simply a contigious array of 0s and 1s)
+// , interprets the bits in the string and returns them in a vector of bytes
 std::vector<uint8_t> from_bit_string(std::string_view str, bool little_endian = true)
 {
     assert(str.length() % 8 == 0);
@@ -105,6 +107,7 @@ std::vector<uint8_t> from_bit_string(std::string_view str, bool little_endian = 
     return bytes;
 }
 
+// template overload so bits in bitstring will be interpreted as the type 'T'
 template<typename T>
 T from_bit_string(std::string_view str, bool little_endian = true)
 {
@@ -115,7 +118,7 @@ T from_bit_string(std::string_view str, bool little_endian = true)
     return result;
 }
 
-
+// swaps the byte order of any data
 template<typename T>
 void swap_endian(T& data)
 {
@@ -125,15 +128,15 @@ void swap_endian(T& data)
         byte_swap(bytes + i, (bytes + size - 1) - i);
 }
 
-template<typename T>
-std::string bit_string(const T& data,  bool little_endian = true)
-{
-    constexpr int size = sizeof(T);
 
+
+// turns any data into a string of bits
+std::string bit_string(const void*data, size_t size, bool little_endian = true)
+{
     std::string res;
     res.resize(size * 8);
 
-    uint8_t *bytes = reinterpret_cast<uint8_t*>(&data);
+    const uint8_t *bytes = reinterpret_cast<const uint8_t*>(data);
     
     if(little_endian){
         for(int i = size-1; i >= 0; i--) {
@@ -152,13 +155,17 @@ std::string bit_string(const T& data,  bool little_endian = true)
     return res;
 }
 
-template<typename T>
-std::string hex_string(const T& data, bool upcase = true)
+// template<typename T>
+// std::string bit_string(const T& data,  bool little_endian = true) {
+//     return bit_string(&data, sizeof(T), little_endian);
+// }
+
+
+std::string hex_string(const void*data, size_t size, bool upcase = true)
 {
-    size_t size = sizeof(T);
     size_t hl = size * 2;
 
-    uint8_t* bytes = reinterpret_cast<uint8_t*>(&data);
+    const uint8_t* bytes = reinterpret_cast<const uint8_t*>(data);
 
     std::string res;
     res.resize(hl);
@@ -170,3 +177,9 @@ std::string hex_string(const T& data, bool upcase = true)
     }
     return res;
 }
+
+// // turns any data into a string of hexadecimal characters
+// template<typename T>
+// std::string hex_string(const T& data, bool upcase = true) {
+//     return hex_string(&data, sizeof(T), upcase);
+// }
