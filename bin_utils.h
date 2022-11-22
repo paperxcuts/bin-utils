@@ -35,6 +35,7 @@ std::pair<uint8_t, uint8_t>split_byte(uint8_t byte) {
 	return { byte >> 4, byte & 0x0F };
 }
 
+
 std::vector<uint8_t> from_hex_string(std::string_view str, bool little_endian = true)
 {
     assert(str.length() % 2 == 0);
