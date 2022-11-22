@@ -3,9 +3,7 @@
 #include <fstream>
 #include <bit>
 #include <filesystem>
-#include "../Binary_Functions/Binary.h"
-
-// bin file input
+#include "../Binary_Functions/bin_utils.h"
 
 template<std::endian byteorder = std::endian::native>
 class BinaryInputFile {
