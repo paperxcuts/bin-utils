@@ -10,7 +10,7 @@ void byte_swap(uint8_t*b1, uint8_t*b2)
     *b2 = t;
 }
 
-// single numiercal digit 0 to 15 to hexadecimal equivalent (0-9 A-F)
+// single numiercal digit (0 - 15) to hexadecimal equivalent (0-9 A-F)
 char digit2hex(char chr, bool upcase = true) {
     if(chr >= 0 && chr <= 9)
         return chr + '0';
