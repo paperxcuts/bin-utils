@@ -1,8 +1,10 @@
 #pragma once
+#include <filesystem>
 #include <iostream>
 #include <fstream>
+#include <memory>
 #include <bit>
-#include <filesystem>
+
 #include "../Binary_Functions/bin_utils.h"
 
 template<std::endian byteorder = std::endian::native>
@@ -16,6 +18,8 @@ public:
     }
     BinaryInputFile() : m_file{}, m_path{}, m_size{0} {}
 
+    BinaryInputFile(const BinaryInputFile&) = delete;
+    BinaryInputFile& operator=(const BinaryInputFile&) = delete;
 public:
     // skip 'sizeof(T)' bytes from current file position
     template<typename T>
