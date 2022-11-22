@@ -3,10 +3,10 @@
 #include <fstream>
 #include <bit>
 #include <filesystem>
-#include "Binary_Functions/Binary.h"
+#include "../Binary_Functions/Binary.h"
 
-// TODO:
-// add readNullTerminatedString function
+// bin file input
+
 template<std::endian byteorder = std::endian::native>
 class BinaryInputFile {
     std::ifstream m_file;
@@ -18,11 +18,25 @@ public:
     }
     BinaryInputFile() : m_file{}, m_path{}, m_size{0} {}
 
-    BinaryInputFile(const FileBinary&) = delete;
-    BinaryInputFile&operator=(const FileBinary&) = delete;
 public:
-    // TODO: add read dummy function
+    // skip 'sizeof(T)' bytes from current file offset
+    template<typename T>
+    void dummy() {
+        seek(sizeof(T), std::ios::cur);
+    }
 
+    // skip 'sizeof(T)' bytes, 'count' number of times from current file offset
+    template<typename T>
+    void dummy(size_t count) {
+        seek(sizeof(T) * count, std::ios::cur);
+    }
+
+    // skip 'count' bytes from current file offset
+    void dummy(std::streamoff count) {
+        seek(count, std::ios::cur);    
+    }
+
+    // read type 'T' from file, swapping the byte order if neccessary
     template<typename T>
     [[nodiscard]] T read() {
         T res;
@@ -33,18 +47,21 @@ public:
         return res;
     }
 
+    // read overload for seeking to streampos before reading
     template<typename T>
     [[nodiscard]] T read(std::streampos fpos) {
         seek(fpos);
         return read<T>();
     }
 
+    // read overload for seeking with stream offset and seek direction
     template<typename T>
     [[nodiscard]] T read(std::streamoff foff, std::ios::seekdir fdir) {
         seek(foff, fdir);
         return read<T>();
     }
 
+    // 
     template<typename T>
     [[nodiscard]] std::unique_ptr<T[]> read_dynamic(size_t count) {
         auto data = std::make_unique<T[]>(count);
@@ -86,6 +103,7 @@ public:
         return read_static<T, N>();
     }
 
+
     [[nodiscard]] std::unique_ptr<uint8_t[]> read_bytes(size_t count) {
         auto bytes = std::make_unique<uint8_t[]>(count);
         for(int i = 0; i < count; i++)
@@ -100,8 +118,23 @@ public:
         seek(foff, fdir);
         return read_bytes(count);
     }
-public:
-    std::string read_null_terminated_string(size_t max_distance);
+
+
+    [[nodiscard]] std::string read_string(int limit_distance = -1)
+    {
+        if(limit_distance < 0)
+            limit_distance = std::numeric_limits<int>::max();
+        
+        std::string res;
+        char chr;
+        m_file.read(&chr, 1);
+
+        for(int i = 0; !m_file.eof() && chr != '\0' && i < limit_distance; i++) {
+            res += chr;
+            m_file.read(&chr, 1);
+        }
+        return res;
+    }
 
 public:
     std::filesystem::path path() const {
