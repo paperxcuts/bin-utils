@@ -131,12 +131,11 @@ void swap_endian(void* data, size_t size) {
         byte_swap(bytes + i, (bytes + size - 1) - i);
 }
 
+// template overload
 template<typename T>
 void swap_endian(T& data) {
     swap_endian(&data, sizeof(T));
 }
-
-
 
 // turns any data into a string of bits
 std::string bit_string(const void* data, size_t size, bool little_endian = false)
@@ -170,6 +169,7 @@ std::string bit_string(const void* data, size_t size, bool little_endian = false
 
 
 // turns any data into a string of hexadecimal characters
+// TODO: add endian option
 std::string hex_string(const void* data, size_t size, bool upcase = true)
 {
     size_t hl = size * 2;
