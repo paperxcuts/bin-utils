@@ -35,7 +35,7 @@ std::pair<uint8_t, uint8_t>split_byte(uint8_t byte) {
 	return { byte >> 4, byte & 0xF };
 }
 
-
+// takes a hexadecimal string (no spaces seperating bytes, no prefixes or suffixes (0x, h), each byte must have exactly 2 hexadecimal characters)
 std::vector<uint8_t> from_hex_string(std::string_view str, bool little_endian = false)
 {
     assert(str.length() % 2 == 0);
@@ -73,8 +73,8 @@ T from_hex_string(std::string_view str, bool little_endian = false)
     return result;
 }
 
-// takes binary string (no leading 0s, no spaces seperating bytes 
-// and must be divisable by 8. simply a contigious array of 0s and 1s)
+// takes binary string (no spaces seperating bytes 
+// and each byte must have exactly 8 bits (divisable by 8). simply a contigious array of 0s and 1s)
 // , interprets the bits in the string and returns them in a vector of bytes
 std::vector<uint8_t> from_bit_string(std::string_view str, bool little_endian = false)
 {
