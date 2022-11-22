@@ -67,6 +67,7 @@ std::vector<uint8_t> from_hex_string(std::string_view str, bool little_endian = 
     return bytes;
 }
 
+// template overload so hex in hexstring will be interpreted as the type 'T'
 template<typename T>
 T from_hex_string(std::string_view str, bool little_endian = false)
 {
