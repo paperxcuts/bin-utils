@@ -19,45 +19,69 @@ char digit2hex(char chr, bool upcase) {
     return chr;
 }
 
-// single character in hexadecimal range ('0'-'9' 'a'-'f' 'A'-'F') to numerical equivalent
+// single hexadecimal character ('0'-'9' 'a'-'f' 'A'-'F') to numerical equivalent
 uint8_t hex2digit(char chr) {
     if(chr >= '0' && chr <= '9')
-        return '9' - chr;
+        return chr - '0';
     if(chr >= 'A' && chr <= 'F')
-        return 'F' - chr;
+        return (chr - 'A') + 10;
     if (chr >= 'a' && chr <= 'f')
-        return 'f' - chr;
+        return (chr - 'a') + 10;
     return chr;
 }
 
+// get 4 bits on right and 4 bits on left
+std::pair<uint8_t, uint8_t>split_byte(uint8_t byte) {
+	return { byte >> 4, byte & 0x0F };
+}
 
-
-
-std::vector<uint8_t> from_hex_string(std::string_view str)
+std::vector<uint8_t> from_hex_string(std::string_view str, bool little_endian = true)
 {
     assert(str.length() % 2 == 0);
     std::vector<uint8_t> bytes;
     bytes.resize(str.length() / 2);
 
-    for(int i = 0, j = 0; i < str.length(); i += 2, j++)
+    // TODO: reduce code duplication
+    if(little_endian)
     {
-        uint8_t l = hex2digit(str[i]);
-        uint8_t r = hex2digit(str[i+1]);
+        for(int i = str.length()-2, j = 0; i >= 0; i -= 2, j++)
+        {
+            uint8_t l = hex2digit(str[i]);
+            uint8_t r = hex2digit(str[i+1]);
+            bytes[j] = (l << 4) | r;
+        }
 
-        bytes[j] = (l << 4) | r;
+    } else {
+        for(int i = 0, j = 0; i < str.length(); i += 2, j++)
+        {
+            uint8_t l = hex2digit(str[i]);
+            uint8_t r = hex2digit(str[i+1]);
+            bytes[j] = (l << 4) | r;
+        }
     }
     return bytes;
+}
+
+template<typename T>
+T from_hex_string(std::string_view str, bool little_endian = true)
+{
+    static_assert(str.length() == sizeof(T) * 2);
+    T result;
+    auto bytes = from_hex_string(str, little_endian);
+    memcpy(&result, bytes.data(), bytes.size());
+    return result;
 }
 
 
 std::vector<uint8_t> from_bit_string(std::string_view str, bool little_endian = true)
 {
-    // TODO: check for both 1 AND 0. otherwise every character except 1 will count as 0
     assert(str.length() % 8 == 0);
+
+    // TODO: check for both 1 AND 0. otherwise every character except 1 will count as 0
     std::vector<uint8_t> bytes;
     bytes.resize(str.length() / 8);
 
-    // TODO: reduce code duplication (little endian and big endian do the same thing but with different loop expressions) (make function?)
+    // TODO: reduce code duplication
     if(little_endian){
         for(int i = str.length() - 8, k = 0; i >= 0; i -= 8, k++)
         {
@@ -83,24 +107,23 @@ std::vector<uint8_t> from_bit_string(std::string_view str, bool little_endian = 
 template<typename T>
 T from_bit_string(std::string_view str, bool little_endian = true)
 {
-    assert(str.length() == sizeof(T) * 8);
+    static_assert(str.length() == sizeof(T) * 8);
     T result;
-    auto bytes = from_bit_string_2(str, little_endian);
+    auto bytes = from_bit_string(str, little_endian);
     memcpy(&result, bytes.data(), bytes.size());
-    return res;
+    return result;
 }
 
-// READY TO TEST
+
 template<typename T>
 void swap_endian(T& data)
 {
     size_t size = sizeof(T);
-    uint8_t* bytes = (uint8_t*)&data;
+    uint8_t* bytes = reinterpret_cast<uint8_t*>(&data);
     for (int i = 0; i < (size / 2); i++)
         byte_swap(bytes + i, (bytes + size - 1) - i);
 }
 
-// READY TO TEST
 template<typename T>
 std::string bit_string(const T& data,  bool little_endian = true)
 {
@@ -108,17 +131,16 @@ std::string bit_string(const T& data,  bool little_endian = true)
 
     std::string res;
     res.resize(size * 8);
-    uint8_t* bytes = (uint8_t*)&data;
+
+    uint8_t *bytes = reinterpret_cast<uint8_t*>(&data);
     
     if(little_endian){
-        // little endian
         for(int i = size-1; i >= 0; i--) {
             for(int j = 0; j < 8; j++) {
                 res += ((bytes[i] >> (7-j)) & 1) ? '1' : '0';
             }
         }
     } else {
-        // big endian
         for(int i = 0; i < size; i++) {
             for(int j = 0; j < 8; j++) {
                 res += ((bytes[i] >> (7-j)) & 1) ? '1' : '0';
@@ -129,17 +151,17 @@ std::string bit_string(const T& data,  bool little_endian = true)
     return res;
 }
 
-// READY TO TEST
 template<typename T>
 std::string hex_string(const T& data, bool upcase = true)
 {
-     size_t size = sizeof(T);
-     size_t hl = size * 2;
+    size_t size = sizeof(T);
+    size_t hl = size * 2;
 
-    uint8_t* bytes = (uint8_t*)&data;
+    uint8_t* bytes = reinterpret_cast<uint8_t*>(&data);
+
     std::string res;
     res.resize(hl);
-    
+
     for (int i = 0, j = 0; j < size; i += 2, j++)
     {
         res[hl-i-2] = digit2hex(bytes[j] >> 4, upcase);
