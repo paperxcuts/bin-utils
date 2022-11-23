@@ -55,7 +55,6 @@ std::vector<uint8_t> from_hex_string(std::string_view str, bool little_endian = 
             uint8_t r = hex2digit(str[i+1]);
             bytes[j] = (l << 4) | r;
         }
-
     } else {
         for(int i = 0, j = 0; i < str.length(); i += 2, j++)
         {
