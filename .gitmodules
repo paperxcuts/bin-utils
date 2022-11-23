@@ -1,0 +1,3 @@
+[submodule "bin-utils"]
+	path = bin-utils
+	url = https://github.com/paperxcuts/bin-utils.git

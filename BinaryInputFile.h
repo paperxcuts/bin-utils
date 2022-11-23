@@ -5,7 +5,7 @@
 #include <memory>
 #include <bit>
 
-#include "../bin_utils/bin_utils.h" // to swap byte order
+#include "bin_utils/bin_utils.h"
 
 
 template<std::endian byteorder = std::endian::native>
