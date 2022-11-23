@@ -5,7 +5,7 @@
 #include <memory>
 #include <bit>
 
-#include "bin_utils/bin_utils.h"
+#include "bin_utils.h"
 
 
 template<std::endian byteorder = std::endian::native>
