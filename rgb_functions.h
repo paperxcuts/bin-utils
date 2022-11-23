@@ -6,7 +6,7 @@
 #include <cmath>
 #include <array>
 
-#include "../bin_utils/bin_utils.h"
+#include "bin_utils.h"
 
 using rgb_array_t = std::array<uint8_t, 3>;
 using hsl_array_t = std::array<float, 3>;
