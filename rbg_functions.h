@@ -70,7 +70,7 @@ namespace rgb {
 
 	// turns rgb values to an rgb hexadecimal color code
 	// - three_digit: should we round the values to fit/round and return a 3 digit hex code instead of 6
-	// - uppercase: should the hexadecimal letters being uppercase or lowercase 
+	// - uppercase: should the hexadecimal letters being uppercase or lowercase
 	std::string rgb_to_hex(uint8_t r, uint8_t g, uint8_t b, bool three_digit = false, bool uppercase = true) {
 		std::string ret;
 
@@ -155,7 +155,6 @@ public:
 		rgb_array_t colors = rgb::hex_to_rgb(hexcode).value_or(rgb_array_t{0,0,0});
 		*this = color_rgb(colors);
 	}
- 
 public:
 	rgb_array_t array() {
 		return {r, g, b};
