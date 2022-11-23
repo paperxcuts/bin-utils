@@ -153,7 +153,7 @@ public:
 
 	color_rgb(std::string_view hexcode) {
 		rgb_array_t colors = rgb::hex_to_rgb(hexcode).value_or(rgb_array_t{0,0,0});
-		*this = colors;
+		*this = color_rgb(colors);
 	}
  
 public:
