@@ -5,10 +5,12 @@
 #include <memory>
 #include <bit>
 
-#include "../Binary_Functions/bin_utils.h"
+#include "../bin_utils/bin_utils.h" // to swap byte order
+
 
 template<std::endian byteorder = std::endian::native>
-class BinaryInputFile {
+class BinaryInputFile 
+{
     std::ifstream m_file;
     std::filesystem::path m_path;
     size_t m_size;
@@ -38,6 +40,8 @@ public:
         seek(count, std::ios::cur);    
     }
 
+    // each read function, by default, will read data from the current offset positioned by the get pointer
+    // each read function also has two overloads for seeking. one with streampos and one with streamoff and streamdir
 
     // read type 'T' from file
     template<typename T>
