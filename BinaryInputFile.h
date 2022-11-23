@@ -1,3 +1,9 @@
+// class to help assist with interperting the bytes read from a file
+
+// we have the option choose the byte order at compile time
+// we can also detect/check byte order will be done at compile time also (with enum class provided by bit header in c++20)
+
+
 #pragma once
 #include <filesystem>
 #include <iostream>

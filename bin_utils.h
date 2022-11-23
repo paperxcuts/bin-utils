@@ -1,3 +1,5 @@
+// binary utility functions. mostly for working with data in and as strings
+
 #pragma once
 #include <iostream>
 #include <vector>

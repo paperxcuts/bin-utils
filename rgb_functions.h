@@ -1,3 +1,5 @@
+// some functions and classes for rgb color data
+
 #pragma once
 #include <iostream>
 #include <optional>
