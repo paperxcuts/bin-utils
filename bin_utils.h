@@ -162,11 +162,6 @@ std::string bit_string(const void* data, size_t size, bool little_endian = false
     return res;
 }
 
-// template<typename T>
-// std::string bit_string(const T& data,  bool little_endian = true) {
-//     return bit_string(&data, sizeof(T), little_endian);
-// }
-
 
 // turns any data into a string of hexadecimal characters
 // TODO: add endian option
@@ -185,8 +180,3 @@ std::string hex_string(const void* data, size_t size, bool upcase = true)
     }
     return res;
 }
-
-// template<typename T>
-// std::string hex_string(const T& data, bool upcase = true) {
-//     return hex_string(&data, sizeof(T), upcase);
-// }
