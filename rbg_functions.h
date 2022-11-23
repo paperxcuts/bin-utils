@@ -155,15 +155,6 @@ public:
 		rgb_array_t colors = rgb::hex_to_rgb(hexcode).value_or(rgb_array_t{0,0,0});
 		*this = colors;
 	}
-
-	// color_rgb& operator=(rgb_array_t cols) {
-	// 	*this = color_rgb(cols);
-	// 	return *this;
-	// }
-	// color_rgb& operator=(std::string_view hexcode) {
-	// 	*this = color_rgb(hexcode);
-	// 	return *this;
-	// }
  
 public:
 	rgb_array_t array() {
