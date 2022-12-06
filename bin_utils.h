@@ -72,7 +72,7 @@ std::vector<uint8_t> from_hex_string(std::string_view str, bool little_endian = 
 template<typename T>
 T from_hex_string(std::string_view str, bool little_endian = false)
 {
-    static_assert(str.length() == sizeof(T) * 2);
+    assert(str.length() == sizeof(T) * 2);
     T result;
     auto bytes = from_hex_string(str, little_endian);
     memcpy(&result, bytes.data(), bytes.size());
