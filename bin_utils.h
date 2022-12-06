@@ -1,6 +1,7 @@
 // binary utility functions. mostly for working with data in and as strings
 
 #pragma once
+#include <concepts>
 #include <iostream>
 #include <vector>
 #include <cassert>
@@ -118,7 +119,7 @@ std::vector<uint8_t> from_bit_string(std::string_view str, bool little_endian = 
 template<typename T>
 T from_bit_string(std::string_view str, bool little_endian = false)
 {
-    static_assert(str.length() == sizeof(T) * 8);
+    assert(str.length() == sizeof(T) * 8);
     T result;
     auto bytes = from_bit_string(str, little_endian);
     memcpy(&result, bytes.data(), bytes.size());
