@@ -160,14 +160,13 @@ std::string bit_string(const void* data, size_t size, bool little_endian = false
             }
         }
     }
-
     return res;
 }
 
 
 // turns any data into a string of hexadecimal characters
 // TODO: add endian option
-std::string hex_string(const void* data, size_t size, bool upcase = true)
+std::string hex_string(const void* data, size_t size, bool little_endian = false, bool upcase = true)
 {
     size_t hl = size * 2;
     const uint8_t* bytes = reinterpret_cast<const uint8_t*>(data);
@@ -175,10 +174,19 @@ std::string hex_string(const void* data, size_t size, bool upcase = true)
     std::string res;
     res.resize(hl);
 
-    for (int i = 0, j = 0; j < size; i += 2, j++)
+    if(little_endian)
     {
-        res[hl-i-2] = digit2hex(bytes[j] >> 4, upcase);
-        res[hl-i-1] = digit2hex(bytes[j] & 0xF, upcase);
+        for (int i = 0, j = size-1; j < size; i += 2, j--)
+        {
+            res[hl-i-1] = digit2hex(bytes[j] & 0xF, upcase);
+            res[hl-i-2] = digit2hex(bytes[j] >> 4, upcase);
+        }
+    } else{
+        for (int i = 0, j = 0; j < size; i += 2, j++)
+        {
+            res[hl-i-1] = digit2hex(bytes[j] & 0xF, upcase);
+            res[hl-i-2] = digit2hex(bytes[j] >> 4, upcase);
+        }
     }
     return res;
 }
