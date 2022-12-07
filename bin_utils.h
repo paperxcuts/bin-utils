@@ -43,7 +43,7 @@ std::pair<uint8_t, uint8_t>split_byte(uint8_t byte) {
 // - no prefixes or suffixes (0x, h)
 // - each byte must have exactly 2 hexadecimal characters (divisable by 2)
 // interprets the hex as bytes and returns them in a vector
-std::vector<uint8_t> from_hex_string(std::string_view str, bool little_endian = false)
+std::vector<uint8_t> from_hex_string(std::string_view str, bool swap_endian = false)
 {
     assert(str.length() % 2 == 0);
     std::vector<uint8_t> bytes;
@@ -55,7 +55,7 @@ std::vector<uint8_t> from_hex_string(std::string_view str, bool little_endian = 
         bytes[j] = (l << 4) | r;
     };
 
-    if(little_endian)
+    if(swap_endian)
     {
         for(int i = str.length()-2, j = 0; i >= 0; i -= 2, j++)
         {
@@ -78,11 +78,11 @@ std::vector<uint8_t> from_hex_string(std::string_view str, bool little_endian = 
 
 // template overload so hex in hexstring will be interpreted as the type 'T'
 template<typename T>
-T from_hex_string(std::string_view str, bool little_endian = false)
+T from_hex_string(std::string_view str, bool swap_endian = false)
 {
     assert(str.length() == sizeof(T) * 2);
     T result;
-    auto bytes = from_hex_string(str, little_endian);
+    auto bytes = from_hex_string(str, swap_endian);
     memcpy(&result, bytes.data(), bytes.size());
     return result;
 }
@@ -91,7 +91,7 @@ T from_hex_string(std::string_view str, bool little_endian = false)
 // - no spaces seperating bytes 
 // - each byte must have exactly 8 bits (divisable by 8)
 // interprets the bits in the string as bytes and returns them in a vector of bytes
-std::vector<uint8_t> from_bit_string(std::string_view str, bool little_endian = false)
+std::vector<uint8_t> from_bit_string(std::string_view str, bool swap_endian = false)
 {
     assert(str.length() % 8 == 0);
 
@@ -107,7 +107,7 @@ std::vector<uint8_t> from_bit_string(std::string_view str, bool little_endian = 
     };
 
 
-    if(little_endian){
+    if(swap_endian){
         for(int i = str.length() - 8, k = 0; i >= 0; i -= 8, k++)
         {
             fbs_proc(i, k);
@@ -133,7 +133,7 @@ std::vector<uint8_t> from_bit_string(std::string_view str, bool little_endian = 
 
 // template overload so bits in bitstring will be interpreted as the type 'T'
 template<typename T>
-T from_bit_string(std::string_view str, bool little_endian = false)
+T from_bit_string(std::string_view str, bool swap_endian = false)
 {
     assert(str.length() == sizeof(T) * 8);
     T result;
@@ -155,7 +155,7 @@ void swap_endian(T& data) {
 }
 
 // turns any data into a string of bits
-std::string bit_string(const void* data, size_t size, bool little_endian = false)
+std::string bit_string(const void* data, size_t size, bool swap_endian = false)
 {
     std::string res;
     res.resize(size * 8);
@@ -167,7 +167,7 @@ std::string bit_string(const void* data, size_t size, bool little_endian = false
             res += ((bytes[i] >> (7-j)) & 1) ? '1' : '0';
     };
 
-    if(little_endian){
+    if(swap_endian){
         for(int i = size-1; i >= 0; i--) {
             tbs_proc(i);
             // for(int j = 0; j < 8; j++) {
@@ -188,7 +188,7 @@ std::string bit_string(const void* data, size_t size, bool little_endian = false
 
 // turns any data into a string of hexadecimal characters
 // TODO: add endian option
-std::string hex_string(const void* data, size_t size, bool little_endian = false, bool upcase = true)
+std::string hex_string(const void* data, size_t size, bool swap_endian = false, bool upcase = true)
 {
     size_t hl = size * 2;
     const uint8_t* bytes = reinterpret_cast<const uint8_t*>(data);
@@ -201,7 +201,7 @@ std::string hex_string(const void* data, size_t size, bool little_endian = false
         res[hl-i-2] = digit2hex(bytes[j] >> 4, upcase);
     };
 
-    if(little_endian){
+    if(swap_endian){
         for (int i = 0, j = size-1; j < size; i += 2, j--)
             ths_proc(i, j);
      } else{
