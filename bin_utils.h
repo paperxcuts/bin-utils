@@ -155,7 +155,7 @@ void swap_endian(T& data) {
 }
 
 // turns any data into a string of bits
-std::string bit_string(const void* data, size_t size, bool swap_endian = false)
+std::string bit_string_data(const void* data, size_t size, bool swap_endian = false)
 {
     std::string res;
     res.resize(size * 8);
@@ -185,9 +185,15 @@ std::string bit_string(const void* data, size_t size, bool swap_endian = false)
     return res;
 }
 
+template<typename T>
+std::string bit_string(const T& value, bool swap_endian = false)
+{
+    return bit_string_data(&value, sizeof(T), swap_endian);
+}
+
 
 // turns any data into a string of hexadecimal characters
-std::string hex_string(const void* data, size_t size, bool swap_endian = false, bool upcase = true)
+std::string hex_string_data(const void* data, size_t size, bool swap_endian = false, bool upcase = true)
 {
     size_t hl = size * 2;
     const uint8_t* bytes = reinterpret_cast<const uint8_t*>(data);
@@ -209,4 +215,10 @@ std::string hex_string(const void* data, size_t size, bool swap_endian = false, 
      }
 
     return res;
+}
+
+template<typename T>
+std::string hex_string(const T& value, bool swap_endian = false, bool upcase = true)
+{
+    return hex_string_data(&value, sizeof(T), swap_endian, upcase);
 }
