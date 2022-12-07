@@ -185,13 +185,6 @@ std::string bit_string_data(const void* data, size_t size, bool swap_endian = fa
     return res;
 }
 
-template<typename T>
-std::string bit_string(const T& value, bool swap_endian = false)
-{
-    return bit_string_data(&value, sizeof(T), swap_endian);
-}
-
-
 // turns any data into a string of hexadecimal characters
 std::string hex_string_data(const void* data, size_t size, bool swap_endian = false, bool upcase = true)
 {
@@ -215,6 +208,13 @@ std::string hex_string_data(const void* data, size_t size, bool swap_endian = fa
      }
 
     return res;
+}
+
+
+template<typename T>
+std::string bit_string(const T& value, bool swap_endian = false)
+{
+    return bit_string_data(&value, sizeof(T), swap_endian);
 }
 
 template<typename T>
