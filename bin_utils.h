@@ -49,21 +49,29 @@ std::vector<uint8_t> from_hex_string(std::string_view str, bool little_endian = 
     std::vector<uint8_t> bytes;
     bytes.resize(str.length() / 2);
 
+    auto fhs_proc = [&](int i, int j) {
+        uint8_t l = hex2digit(str[i]);
+        uint8_t r = hex2digit(str[i+1]);
+        bytes[j] = (l << 4) | r;
+    };
+
     // TODO: reduce code duplication
     if(little_endian)
     {
         for(int i = str.length()-2, j = 0; i >= 0; i -= 2, j++)
         {
-            uint8_t l = hex2digit(str[i]);
-            uint8_t r = hex2digit(str[i+1]);
-            bytes[j] = (l << 4) | r;
+            fhs_proc(i, j);
+            // uint8_t l = hex2digit(str[i]);
+            // uint8_t r = hex2digit(str[i+1]);
+            // bytes[j] = (l << 4) | r;
         }
     } else {
         for(int i = 0, j = 0; i < str.length(); i += 2, j++)
         {
-            uint8_t l = hex2digit(str[i]);
-            uint8_t r = hex2digit(str[i+1]);
-            bytes[j] = (l << 4) | r;
+            fhs_proc(i, j);
+            // uint8_t l = hex2digit(str[i]);
+            // uint8_t r = hex2digit(str[i+1]);
+            // bytes[j] = (l << 4) | r;
         }
     }
     return bytes;
@@ -93,23 +101,33 @@ std::vector<uint8_t> from_bit_string(std::string_view str, bool little_endian = 
     bytes.resize(str.length() / 8);
 
     // TODO: reduce code duplication
+    auto fbs_proc = [&](int i, int k){
+        uint8_t byte = 0;
+        for(int j = 0; j < 8; j++)
+            byte |= ((str[j+i] == '1' ? 1 : 0) << (7-j));
+        bytes[k] = byte;
+    };
+
+
     if(little_endian){
         for(int i = str.length() - 8, k = 0; i >= 0; i -= 8, k++)
         {
-            uint8_t byte = 0;
-            for(int j = 0; j < 8; j++) {
-                byte |= ((str[j+i] == '1' ? 1 : 0) << (7-j));
-            }
-            bytes[k] = byte;
+            fbs_proc(i, k);
+            // uint8_t byte = 0;
+            // for(int j = 0; j < 8; j++) {
+            //     byte |= ((str[j+i] == '1' ? 1 : 0) << (7-j));
+            // }
+            // bytes[k] = byte;
         }
     } else {
         for(int i = 0, k = 0; i < str.length(); i += 8, k++)
         {
-            uint8_t byte = 0;
-            for(int j = 0; j < 8; j++) {
-                byte |= ((str[j+i] == '1' ? 1 : 0) << (7-j));
-            }
-            bytes[k] = byte;
+            fbs_proc(i, k);
+            // uint8_t byte = 0;
+            // for(int j = 0; j < 8; j++) {
+            //     byte |= ((str[j+i] == '1' ? 1 : 0) << (7-j));
+            // }
+            // bytes[k] = byte;
         }
     }
     return bytes;
@@ -146,18 +164,25 @@ std::string bit_string(const void* data, size_t size, bool little_endian = false
 
     const uint8_t *bytes = reinterpret_cast<const uint8_t*>(data);
     
+    auto tbs_proc = [&](int i) {
+        for(int j = 0; j < 8; j++)
+            res += ((bytes[i] >> (7-j)) & 1) ? '1' : '0';
+    };
+
     // TODO: reduce code duplication
     if(little_endian){
         for(int i = size-1; i >= 0; i--) {
-            for(int j = 0; j < 8; j++) {
-                res += ((bytes[i] >> (7-j)) & 1) ? '1' : '0';
-            }
+            tbs_proc(i);
+            // for(int j = 0; j < 8; j++) {
+            //     res += ((bytes[i] >> (7-j)) & 1) ? '1' : '0';
+            // }
         }
     } else {
         for(int i = 0; i < size; i++) {
-            for(int j = 0; j < 8; j++) {
-                res += ((bytes[i] >> (7-j)) & 1) ? '1' : '0';
-            }
+            tbs_proc(i);
+            // for(int j = 0; j < 8; j++) {
+            //     res += ((bytes[i] >> (7-j)) & 1) ? '1' : '0';
+            // }
         }
     }
     return res;
@@ -174,19 +199,18 @@ std::string hex_string(const void* data, size_t size, bool little_endian = false
     std::string res;
     res.resize(hl);
 
-    if(little_endian)
-    {
+    auto ths_proc = [&](int i, int j){
+        res[hl-i-1] = digit2hex(bytes[j] & 0xF, upcase);
+        res[hl-i-2] = digit2hex(bytes[j] >> 4, upcase);
+    };
+
+    if(little_endian){
         for (int i = 0, j = size-1; j < size; i += 2, j--)
-        {
-            res[hl-i-1] = digit2hex(bytes[j] & 0xF, upcase);
-            res[hl-i-2] = digit2hex(bytes[j] >> 4, upcase);
-        }
-    } else{
+            ths_proc(i, j);
+     } else{
         for (int i = 0, j = 0; j < size; i += 2, j++)
-        {
-            res[hl-i-1] = digit2hex(bytes[j] & 0xF, upcase);
-            res[hl-i-2] = digit2hex(bytes[j] >> 4, upcase);
-        }
-    }
+            ths_proc(i, j);
+     }
+
     return res;
 }
