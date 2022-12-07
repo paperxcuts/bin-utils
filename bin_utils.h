@@ -6,7 +6,7 @@
 #include <vector>
 #include <cassert>
 
-void byte_swap(uint8_t*b1, uint8_t*b2)
+void byte_swap(uint8_t *b1, uint8_t *b2)
 {
     uint8_t t = *b1;
     *b1 = *b2;
