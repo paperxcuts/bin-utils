@@ -187,7 +187,6 @@ std::string bit_string(const void* data, size_t size, bool swap_endian = false)
 
 
 // turns any data into a string of hexadecimal characters
-// TODO: add endian option
 std::string hex_string(const void* data, size_t size, bool swap_endian = false, bool upcase = true)
 {
     size_t hl = size * 2;
