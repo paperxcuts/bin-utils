@@ -55,7 +55,6 @@ std::vector<uint8_t> from_hex_string(std::string_view str, bool little_endian = 
         bytes[j] = (l << 4) | r;
     };
 
-    // TODO: reduce code duplication
     if(little_endian)
     {
         for(int i = str.length()-2, j = 0; i >= 0; i -= 2, j++)
@@ -100,7 +99,6 @@ std::vector<uint8_t> from_bit_string(std::string_view str, bool little_endian = 
     std::vector<uint8_t> bytes;
     bytes.resize(str.length() / 8);
 
-    // TODO: reduce code duplication
     auto fbs_proc = [&](int i, int k){
         uint8_t byte = 0;
         for(int j = 0; j < 8; j++)
@@ -169,7 +167,6 @@ std::string bit_string(const void* data, size_t size, bool little_endian = false
             res += ((bytes[i] >> (7-j)) & 1) ? '1' : '0';
     };
 
-    // TODO: reduce code duplication
     if(little_endian){
         for(int i = size-1; i >= 0; i--) {
             tbs_proc(i);
