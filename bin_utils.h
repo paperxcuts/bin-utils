@@ -58,20 +58,10 @@ std::vector<uint8_t> from_hex_string(std::string_view str, bool swap_endian = fa
     if(swap_endian)
     {
         for(int i = str.length()-2, j = 0; i >= 0; i -= 2, j++)
-        {
             fhs_proc(i, j);
-            // uint8_t l = hex2digit(str[i]);
-            // uint8_t r = hex2digit(str[i+1]);
-            // bytes[j] = (l << 4) | r;
-        }
     } else {
         for(int i = 0, j = 0; i < str.length(); i += 2, j++)
-        {
             fhs_proc(i, j);
-            // uint8_t l = hex2digit(str[i]);
-            // uint8_t r = hex2digit(str[i+1]);
-            // bytes[j] = (l << 4) | r;
-        }
     }
     return bytes;
 }
@@ -109,24 +99,10 @@ std::vector<uint8_t> from_bit_string(std::string_view str, bool swap_endian = fa
 
     if(swap_endian){
         for(int i = str.length() - 8, k = 0; i >= 0; i -= 8, k++)
-        {
             fbs_proc(i, k);
-            // uint8_t byte = 0;
-            // for(int j = 0; j < 8; j++) {
-            //     byte |= ((str[j+i] == '1' ? 1 : 0) << (7-j));
-            // }
-            // bytes[k] = byte;
-        }
     } else {
         for(int i = 0, k = 0; i < str.length(); i += 8, k++)
-        {
             fbs_proc(i, k);
-            // uint8_t byte = 0;
-            // for(int j = 0; j < 8; j++) {
-            //     byte |= ((str[j+i] == '1' ? 1 : 0) << (7-j));
-            // }
-            // bytes[k] = byte;
-        }
     }
     return bytes;
 }
@@ -168,19 +144,11 @@ std::string bit_string_data(const void* data, size_t size, bool swap_endian = fa
     };
 
     if(swap_endian){
-        for(int i = size-1; i >= 0; i--) {
+        for(int i = size-1; i >= 0; i--)
             tbs_proc(i);
-            // for(int j = 0; j < 8; j++) {
-            //     res += ((bytes[i] >> (7-j)) & 1) ? '1' : '0';
-            // }
-        }
     } else {
-        for(int i = 0; i < size; i++) {
+        for(int i = 0; i < size; i++)
             tbs_proc(i);
-            // for(int j = 0; j < 8; j++) {
-            //     res += ((bytes[i] >> (7-j)) & 1) ? '1' : '0';
-            // }
-        }
     }
     return res;
 }
